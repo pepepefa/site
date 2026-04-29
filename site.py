@@ -5,24 +5,20 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    conn = sqlite3.connect("refs.db")
-    cursor = conn.cursor()
+    with sqlite3.connect("refs.db") as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+        SELECT ref, COUNT(*) 
+        FROM users 
+        WHERE ref IS NOT NULL
+        GROUP BY ref
+        ORDER BY COUNT(*) DESC
+        """)
+        data = cursor.fetchall()
 
-    cursor.execute("""
-    SELECT ref, COUNT(*) 
-    FROM users 
-    WHERE ref IS NOT NULL
-    GROUP BY ref
-    ORDER BY COUNT(*) DESC
-    """)
-
-    data = cursor.fetchall()
-
-    html = "<h1>📊 Статистика рефералов</h1><br>"
+    html = "<h1>📊 Статистика рефералів</h1><br>"
 
     for ref, count in data:
-        html += f"<p>{ref} → {count} человек</p>"
+        html += f"<p>{ref} → {count} людей</p>"
 
     return html
-
-app.run(host="0.0.0.0", port=3000)
